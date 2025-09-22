@@ -12,7 +12,6 @@ class Snake:
         """Implementa a lógica de movimento da cobra."""
         x, y = self.posicao
         
-        # --- LÓGICA COMPLETA DE MOVIMENTAÇÃO ---
         if self.direcao == "DIREITA":
             x += 1
         elif self.direcao == "ESQUERDA":
