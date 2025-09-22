@@ -1,23 +1,31 @@
-class Snake:
-    """Representa a cobra no jogo."""
+# src/snake.py
 
+class Snake:
     def __init__(self):
         """Inicializa a cobra com valores padrão."""
-        # Define um tamanho inicial para a cobra
         self.tamanho = 3
-        # Define a posição inicial da cabeça da cobra no centro de um grid imaginário
-        self.posicao = (10, 10) 
-        # Define a direção inicial do movimento
+        self.posicao = (10, 10)
         self.direcao = "DIREITA"
-        # O corpo pode ser uma lista de coordenadas
         self.corpo = [(10, 10), (9, 10), (8, 10)]
 
     def mover(self):
         """Implementa a lógica de movimento da cobra."""
-        # A lógica de movimento será adicionada aqui em um próximo passo do TDD.
+        x, y = self.posicao
+        if self.direcao == "DIREITA":
+            x += 1
+        # ... (outras direções) ...
+        
+        self.posicao = (x, y)
+        self.corpo.insert(0, self.posicao)
+        self.corpo.pop() # Esta linha será modificada pela lógica de crescimento
+
+    def mudar_direcao(self, nova_direcao):
+        # ... (código existente) ...
         pass
 
     def crescer(self):
         """Implementa a lógica de crescimento da cobra."""
-        # A lógica de crescimento será adicionada aqui.
-        pass
+        self.tamanho += 1
+        # Para fazer o corpo crescer, simplesmente adicionamos um segmento
+        # na mesma posição do último. O movimento natural se encarregará de ajustá-lo.
+        self.corpo.append(self.corpo[-1])
