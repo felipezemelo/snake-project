@@ -12,7 +12,7 @@ O principal objetivo é aplicar os princípios de **Teste Holístico**, utilizan
 - [x] **Fase 3:** Criação de todos os Cenários de Teste BDD (`.feature`)  
 - [x] **Fase 4:** Configuração do Ambiente Python e da estrutura do projeto  
 - [x] **Fase 5:** Implementação dos primeiros *Step Definitions* (`partida_steps.py`, `dificuldade_steps.py`)  
-- [ ] **Fase 5.1:** Implementar os 4 *Step Definitions* restantes  
+- [x] **Fase 5.1:** Implementar os 4 *Step Definitions* restantes  
 - [ ] **Fase 6:** Desenvolvimento da Lógica do Jogo (`snake.py` e `game.js`) com TDD  
 - [ ] **Fase 7:** Realizar Testes Informais com usuários e registrar *Issues*  
 - [ ] **Fase 8:** Escrever o Relatório Técnico Final  
