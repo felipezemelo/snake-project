@@ -1,18 +1,51 @@
-# Importa a classe Flask e a função render_template
-from flask import Flask, render_template
+# src/main.py
+from flask import Flask, render_template, jsonify, request
+from src.game import Game
 
-# Cria uma instância da aplicação web
-# O argumento __name__ ajuda o Flask a encontrar a pasta 'templates'
 app = Flask(__name__)
 
-# Define a rota para a página inicial do site ('/')
+# Cria uma instância global do jogo que o servidor irá controlar
+game_instance = Game(largura=20, altura=20)
+
 @app.route('/')
 def home():
-    """Esta função será executada quando alguém acessar a página inicial."""
-    # Retorna o conteúdo do arquivo index.html que está na pasta 'templates'
+    """Renderiza a página principal do jogo."""
     return render_template('index.html')
 
-# Este bloco garante que o servidor só vai rodar quando o script for executado diretamente
+# --- ROTAS DE API ---
+
+@app.route('/api/start', methods=['POST'])
+def start_game():
+    """Inicia um novo jogo, reiniciando a instância no servidor."""
+    global game_instance
+    game_instance = Game(largura=20, altura=20)
+    return jsonify({'message': 'Novo jogo iniciado'})
+
+@app.route('/api/state', methods=['GET'])
+def get_state():
+    """Retorna o estado atual completo do jogo em formato JSON."""
+    global game_instance
+    game_instance.update()
+    
+    state = {
+        'snake_body': [segment for segment in game_instance.snake.corpo],
+        'food_position': game_instance.board.comida.posicao,
+        'score': game_instance.pontuacao,
+        'game_over': game_instance.game_over
+    }
+    return jsonify(state)
+
+@app.route('/api/move', methods=['POST'])
+def move_snake():
+    """Recebe a nova direção do jogador e a atualiza no jogo."""
+    global game_instance
+    data = request.get_json()
+    direction = data.get('direction')
+    
+    if direction:
+        game_instance.snake.mudar_direcao(direction)
+        
+    return jsonify({'status': 'success'})
+
 if __name__ == '__main__':
-    # Roda a aplicação em modo de depuração, que reinicia automaticamente a cada mudança
     app.run(debug=True)
