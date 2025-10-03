@@ -3,37 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo Snake</title>
+    <title>Snake Game</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
     <div class="game-container">
-        <h1>Jogo Snake</h1>
-        
+        <h1>Snake</h1>
         <div class="hud">
             <h2>Pontuação: <span id="score">0</span></h2>
         </div>
-
         <canvas id="gameCanvas" width="400" height="400"></canvas>
 
         <div id="start-screen" class="overlay">
             <p>Aperte qualquer tecla para iniciar</p>
         </div>
-
-        <div id="difficulty-screen" class="overlay" style="display: none;">
+        <div id="difficulty-screen" class="overlay">
             <h2>Selecione a Dificuldade</h2>
             <button id="normalBtn">Normal</button>
             <button id="dificilBtn">Difícil</button>
         </div>
-
-        <div id="game-over-screen" class="overlay" style="display: none;">
+        <div id="game-over-screen" class="overlay">
             <h2>Game Over</h2>
             <p>Pontuação Final: <span id="finalScore">0</span></p>
             <button id="restartBtn">Tentar Novamente</button>
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='game.js') }}"></script>
+    <script src="{{ url_for('static', filename='interface.js') }}"></script>
 </body>
 </html>

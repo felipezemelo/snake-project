@@ -31,7 +31,8 @@ def get_state():
         'snake_body': [segment for segment in game_instance.snake.corpo],
         'food_position': game_instance.board.comida.posicao,
         'score': game_instance.pontuacao,
-        'game_over': game_instance.game_over
+        'game_over': game_instance.game_over,
+        'snake_direction': game_instance.snake.direcao # <-- A linha importante
     }
     return jsonify(state)
 
