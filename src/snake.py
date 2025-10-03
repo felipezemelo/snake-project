@@ -11,7 +11,6 @@ class Snake:
     def mover(self):
         """Implementa a lógica de movimento da cobra."""
         x, y = self.posicao
-        
         if self.direcao == "DIREITA":
             x += 1
         elif self.direcao == "ESQUERDA":
@@ -27,7 +26,6 @@ class Snake:
 
     def mudar_direcao(self, nova_direcao):
         """Altera a direção da cobra, impedindo que ela se mova para trás."""
-        # Impede que a cobra se mova na direção oposta à atual
         if nova_direcao == "CIMA" and self.direcao != "BAIXO":
             self.direcao = nova_direcao
         elif nova_direcao == "BAIXO" and self.direcao != "CIMA":
@@ -41,3 +39,20 @@ class Snake:
         """Implementa a lógica de crescimento da cobra."""
         self.tamanho += 1
         self.corpo.append(self.corpo[-1])
+
+    def verificar_colisao(self, largura_grid, altura_grid):
+        """
+        Verifica se a cobra colidiu com as paredes ou com o próprio corpo.
+        Retorna True se houver colisão, False caso contrário.
+        """
+        x, y = self.posicao
+        
+        # 1. Colisão com as paredes
+        if x < 0 or x >= largura_grid or y < 0 or y >= altura_grid:
+            return True
+            
+        # 2. Colisão com o próprio corpo
+        if self.posicao in self.corpo[1:]:
+            return True
+            
+        return False
