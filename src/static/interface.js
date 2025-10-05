@@ -169,15 +169,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Funções de Partículas para o Rato Vermelho (Shrink Effect) ---
     function generateShrinkParticles(x, y) {
-        for (let i = 0; i < 20; i++) { // 20 partículas
-            particles.push({
-                x: x + gridSize / 2,
-                y: y + gridSize / 2,
-                vx: (Math.random() - 0.5) * 4, // Velocidade X aleatória
-                vy: (Math.random() - 0.5) * 4, // Velocidade Y aleatória
-                color: `rgb(${Math.floor(Math.random() * 50) + 200}, ${Math.floor(Math.random() * 50)}, ${Math.floor(Math.random() * 50)})`, // Tons de vermelho/laranja
-                life: 60, // Tempo de vida em frames
-                size: Math.random() * 3 + 1 // Tamanho aleatório
+    for (let i = 0; i < 50; i++) { // Aumentado para 50 partículas
+        particles.push({
+            x: x + gridSize / 2,
+            y: y + gridSize / 2,
+            vx: (Math.random() - 0.5) * 5, // Aumenta a velocidade
+            vy: (Math.random() - 0.5) * 5, // Aumenta a velocidade
+            color: `rgb(${Math.floor(Math.random() * 50) + 200}, ${Math.floor(Math.random() * 50)}, ${Math.floor(Math.random() * 50)})`,
+            life: 80, // Aumenta o tempo de vida
+            size: Math.random() * 4 + 2 // Aumenta o tamanho
             });
         }
     }
