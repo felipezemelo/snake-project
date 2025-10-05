@@ -30,7 +30,13 @@ class Game:
                 self.snake.crescer()
                 self.pontuacao += 25
             elif tipo_comida == 'VERMELHO':
-                self.snake.encolher()
-                self.pontuacao += 1
+                # --- NOVA LÓGICA DO RATO VERMELHO ---
+                # Condição: Só encolhe se a cobra for maior que 10 segmentos
+                if self.snake.tamanho > 10:
+                    segmentos_a_remover = self.snake.tamanho // 2
+                    for _ in range(segmentos_a_remover):
+                        self.snake.encolher()
+                
+                self.pontuacao += 1 # Ganha apenas 1 ponto
             
             self.board.gerar_comida(self.snake.corpo)

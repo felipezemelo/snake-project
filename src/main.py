@@ -21,10 +21,7 @@ def get_state():
     game_instance.update()
     state = {
         'snake_body': [segment for segment in game_instance.snake.corpo],
-        'food': {
-            'position': game_instance.board.comida.posicao,
-            'type': game_instance.board.comida.type
-        },
+        'food': { 'position': game_instance.board.comida.posicao, 'type': game_instance.board.comida.type },
         'score': game_instance.pontuacao,
         'game_over': game_instance.game_over,
         'snake_direction': game_instance.snake.direcao

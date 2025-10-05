@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake</title>
+    <title>Snake Game</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="game-container">
         <h1>Snake</h1>
-        <div class="hud">
+        <div class.hud">
             <h2>Pontuação: <span id="score">0</span></h2>
         </div>
         <canvas id="gameCanvas" width="400" height="400"></canvas>
@@ -17,7 +17,7 @@
         <div id="start-screen" class="overlay">
             <p>Aperte qualquer tecla para iniciar</p>
         </div>
-        <div id="difficulty-screen" class.overlay">
+        <div id="difficulty-screen" class="overlay">
             <h2>Selecione a Dificuldade</h2>
             <button id="normalBtn">Normal</button>
             <button id="dificilBtn">Difícil</button>

@@ -38,3 +38,33 @@ def test_game_over_por_colisao_com_parede():
     jogo.update()
     
     assert jogo.game_over == True
+
+def test_cobra_come_rato_dourado_e_ganha_mais_pontos():
+    """Testa o efeito do power-up do rato dourado."""
+    jogo = Game(largura=20, altura=20)
+    pontuacao_inicial = jogo.pontuacao
+    
+    # Força a criação de um rato dourado na posição da cobra
+    posicao_da_cobra = jogo.snake.posicao
+    jogo.board.comida = Food(posicao_da_cobra[0], posicao_da_cobra[1], food_type='DOURADO')
+    
+    jogo.update()
+
+    # Verifica se a pontuação aumentou o valor correto para o power-up
+    assert jogo.pontuacao == pontuacao_inicial + 25
+
+#TODO
+def test_cobra_come_rato_vermelho_e_encolhe():
+    """Testa o efeito do power-up do rato vermelho."""
+    jogo = Game(largura=20, altura=20)
+    jogo.snake.crescer() # Garante que a cobra é maior que o tamanho mínimo
+    tamanho_inicial = jogo.snake.tamanho
+    
+    # Força a criação de um rato vermelho na posição da cobra
+    posicao_da_cobra = jogo.snake.posicao
+    jogo.board.comida = Food(posicao_da_cobra[0], posicao_da_cobra[1], food_type='VERMELHO')
+
+    jogo.update()
+    
+    # Verifica se a cobra de facto encolheu
+    assert jogo.snake.tamanho == tamanho_inicial - 1
