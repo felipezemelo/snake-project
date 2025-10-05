@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game🐍</title>
+    <title>Snake</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -17,7 +17,7 @@
         <div id="start-screen" class="overlay">
             <p>Aperte qualquer tecla para iniciar</p>
         </div>
-        <div id="difficulty-screen" class="overlay">
+        <div id="difficulty-screen" class.overlay">
             <h2>Selecione a Dificuldade</h2>
             <button id="normalBtn">Normal</button>
             <button id="dificilBtn">Difícil</button>
@@ -28,7 +28,6 @@
             <button id="restartBtn">Tentar Novamente</button>
         </div>
     </div>
-
     <script src="{{ url_for('static', filename='interface.js') }}"></script>
 </body>
 </html>
