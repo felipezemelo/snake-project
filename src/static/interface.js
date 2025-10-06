@@ -29,9 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let previousSnakeLength = 0; 
     let proximaDirecao = null;
 
-    // Variáveis para controlo de velocidade
+    window.currentSpeed = 200; // Valor inicial
     let currentDifficulty = 'Normal';
-    let currentSpeed = 200;
 
     const ratImages = {
         'NORMAL': new Image(),
@@ -85,12 +84,12 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetch('/api/start', { method: 'POST' });
         
         currentDifficulty = difficulty;
-        currentSpeed = difficulty === 'Normal' ? 200 : 100;
+        window.currentSpeed = difficulty === 'Normal' ? 200 : 100;
 
         proximaDirecao = null;
         document.addEventListener('keydown', handlePlayerInput);
         
-        gameLoopInterval = setInterval(gameLoop, currentSpeed);
+        gameLoopInterval = setInterval(gameLoop, window.currentSpeed);
         previousSnakeLength = 3;
     }
 
@@ -110,19 +109,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const response = await fetch('/api/state');
         const gameState = await response.json();
 
-        // LÓGICA DE AUMENTO DE VELOCIDADE
+        // --- LÓGICA DE AUMENTO DE VELOCIDADE CORRIGIDA ---
         if (currentDifficulty === 'Normal') {
-            const initialSpeed = 200;
-            const finalSpeed = 100;
-            // --- VALOR AJUSTADO AQUI ---
-            const maxScoreForSpeedup = 250; // A velocidade máxima será atingida aos 250 pontos
-            const progress = Math.min(gameState.score / maxScoreForSpeedup, 1.0);
-            const newSpeed = Math.floor(initialSpeed - (initialSpeed - finalSpeed) * progress);
+            let newSpeed = window.currentSpeed;
+            if (gameState.score >= 100 && window.currentSpeed > 120) {
+                newSpeed = 120; // Nível 3
+            } else if (gameState.score >= 50 && window.currentSpeed > 160) {
+                newSpeed = 160; // Nível 2
+            }
 
-            if (newSpeed < currentSpeed) {
-                currentSpeed = newSpeed;
+            if (newSpeed < window.currentSpeed) {
+                window.currentSpeed = newSpeed;
                 clearInterval(gameLoopInterval);
-                gameLoopInterval = setInterval(gameLoop, currentSpeed);
+                gameLoopInterval = setInterval(gameLoop, window.currentSpeed);
             }
         }
 
