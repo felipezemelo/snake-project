@@ -2,21 +2,37 @@
 document.addEventListener('DOMContentLoaded', () => {
     const startScreen = document.getElementById('start-screen');
     const difficultyScreen = document.getElementById('difficulty-screen');
+    const tutorialScreen = document.getElementById('tutorial-screen');
     const gameOverScreen = document.getElementById('game-over-screen');
     const gameCanvas = document.getElementById('gameCanvas');
     const scoreElement = document.getElementById('score');
+    
+    // Elementos da tela de Game Over
+    const finalScoresDiv = document.getElementById('final-scores');
+    const newHighscoreDiv = document.getElementById('new-highscore-entry');
     const finalScoreElement = document.getElementById('finalScore');
+    const highScoreListElement = document.getElementById('highScoreList');
+    const playerNameInput = document.getElementById('playerNameInput');
+    const saveScoreBtn = document.getElementById('saveScoreBtn');
+
     const restartBtn = document.getElementById('restartBtn');
     const normalBtn = document.getElementById('normalBtn');
     const dificilBtn = document.getElementById('dificilBtn');
+    const playBtn = document.getElementById('playBtn');
+    
     const ctx = gameCanvas.getContext('2d');
     const gridSize = 20;
     let gameLoopInterval;
     let pulseFactor = 1.0;
-    let tongueFrame = 0; // Para a animação da língua
-    const particles = []; // Array para partículas da animação do fogo
+    let tongueFrame = 0;
+    const particles = [];
+    let previousSnakeLength = 0; 
+    let proximaDirecao = null;
 
-    // --- Carregamento de TODAS as Imagens dos Ratos ---
+    // Variáveis para controlo de velocidade
+    let currentDifficulty = 'Normal';
+    let currentSpeed = 200;
+
     const ratImages = {
         'NORMAL': new Image(),
         'DOURADO': new Image(),
@@ -26,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ratImages['DOURADO'].src = "/static/rato_dourado.png";
     ratImages['VERMELHO'].src = "/static/rato_vermelho.png"; 
 
-    // Espera TODAS as imagens carregarem antes de iniciar
     Promise.all([
         new Promise(resolve => { ratImages['NORMAL'].onload = resolve; ratImages['NORMAL'].onerror = resolve; }),
         new Promise(resolve => { ratImages['DOURADO'].onload = resolve; ratImages['DOURADO'].onerror = resolve; }),
@@ -36,9 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('keydown', handleKeyPress);
     });
 
-    normalBtn.addEventListener('click', () => startGame('Normal'));
-    dificilBtn.addEventListener('click', () => startGame('Dificil'));
+    // --- LÓGICA DE NAVEGAÇÃO ---
+    normalBtn.addEventListener('click', () => handleDifficultySelection('Normal'));
+    dificilBtn.addEventListener('click', () => handleDifficultySelection('Difícil'));
+    playBtn.addEventListener('click', () => startGame(playBtn.dataset.difficulty));
     restartBtn.addEventListener('click', () => location.reload());
+    
+    saveScoreBtn.addEventListener('click', () => {
+        const finalScore = parseInt(finalScoreElement.textContent, 10);
+        saveHighScore(finalScore);
+    });
 
     function handleKeyPress(event) {
         if (startScreen.classList.contains('visible')) {
@@ -52,60 +74,72 @@ document.addEventListener('DOMContentLoaded', () => {
         difficultyScreen.classList.add('visible');
     }
 
-    // Armazenar o estado anterior da cobra para detetar encolhimento
-    let previousSnakeLength = 0; 
+    function handleDifficultySelection(difficulty) {
+        difficultyScreen.classList.remove('visible');
+        tutorialScreen.classList.add('visible');
+        playBtn.dataset.difficulty = difficulty;
+    }
 
     async function startGame(difficulty) {
-        difficultyScreen.classList.remove('visible');
+        tutorialScreen.classList.remove('visible');
         await fetch('/api/start', { method: 'POST' });
+        
+        currentDifficulty = difficulty;
+        currentSpeed = difficulty === 'Normal' ? 200 : 100;
+
+        proximaDirecao = null;
         document.addEventListener('keydown', handlePlayerInput);
-        const speed = difficulty === 'Normal' ? 200 : 100;
-        gameLoopInterval = setInterval(gameLoop, speed);
-        previousSnakeLength = 3; // Inicia com o tamanho padrão da cobra
+        
+        gameLoopInterval = setInterval(gameLoop, currentSpeed);
+        previousSnakeLength = 3;
     }
 
     async function gameLoop() {
-        // Animação da língua
-        tongueFrame = (tongueFrame + 1) % 2; // Alterna entre 0 e 1
+        if (proximaDirecao) {
+            await fetch('/api/move', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ direction: proximaDirecao })
+            });
+            proximaDirecao = null;
+        }
 
-        // Animação de pulsação dos ratos
+        tongueFrame = (tongueFrame + 1) % 2;
         pulseFactor = 1.0 + Math.sin(Date.now() / 200) * 0.15;
         
         const response = await fetch('/api/state');
         const gameState = await response.json();
 
-        // Deteta se a cobra encolheu para gerar partículas
+        // LÓGICA DE AUMENTO DE VELOCIDADE
+        if (currentDifficulty === 'Normal') {
+            const initialSpeed = 200;
+            const finalSpeed = 100;
+            // --- VALOR AJUSTADO AQUI ---
+            const maxScoreForSpeedup = 250; // A velocidade máxima será atingida aos 250 pontos
+            const progress = Math.min(gameState.score / maxScoreForSpeedup, 1.0);
+            const newSpeed = Math.floor(initialSpeed - (initialSpeed - finalSpeed) * progress);
+
+            if (newSpeed < currentSpeed) {
+                currentSpeed = newSpeed;
+                clearInterval(gameLoopInterval);
+                gameLoopInterval = setInterval(gameLoop, currentSpeed);
+            }
+        }
+
         if (gameState.snake_body.length < previousSnakeLength) {
             generateShrinkParticles(gameState.snake_body[0][0] * gridSize, gameState.snake_body[0][1] * gridSize);
         }
         previousSnakeLength = gameState.snake_body.length;
 
         if (gameState.game_over) {
-            clearInterval(gameLoopInterval);
-            document.removeEventListener('keydown', handlePlayerInput);
             showGameOverScreen(gameState.score);
             return;
         }
         draw(gameState);
-        updateParticles(); // Atualiza a posição das partículas
-        drawParticles();   // Desenha as partículas
+        updateParticles();
+        drawParticles();
     }
     
-    function drawRoundedRect(x, y, width, height, radius) {
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.lineTo(x + width - radius, y);
-        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-        ctx.lineTo(x + width, y + height - radius);
-        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-        ctx.lineTo(x + radius, y + height);
-        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-        ctx.lineTo(x, y + radius);
-        ctx.quadraticCurveTo(x, y, x + radius, y);
-        ctx.closePath();
-        ctx.fill();
-    }
-
     function draw(state) {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
@@ -117,14 +151,12 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillStyle = (index === 0) ? '#39FF14' : 'lime';
             drawRoundedRect(segX + 1, segY + 1, gridSize - 2, gridSize - 2, 5);
 
-            if (index === 0) { // Cabeça da cobra
+            if (index === 0) {
                 ctx.fillStyle = 'black';
                 const eyeSize = 3;
                 const direction = state.snake_direction;
-                let eye1X, eye1Y, eye2X, eye2Y;
-                let tongueX, tongueY, tongueW, tongueH;
+                let eye1X, eye1Y, eye2X, eye2Y, tongueX, tongueY, tongueW, tongueH;
                 
-                // Posição dos olhos
                 if (direction === 'DIREITA') { eye1X = segX + gridSize - 8; eye1Y = segY + 4; eye2X = segX + gridSize - 8; eye2Y = segY + gridSize - 7; } 
                 else if (direction === 'ESQUERDA') { eye1X = segX + 5; eye1Y = segY + 4; eye2X = segX + 5; eye2Y = segY + gridSize - 7; } 
                 else if (direction === 'BAIXO') { eye1X = segX + 4; eye1Y = segY + gridSize - 8; eye2X = segX + gridSize - 7; eye2Y = segY + gridSize - 8; } 
@@ -132,8 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.fillRect(eye1X, eye1Y, eyeSize, eyeSize);
                 ctx.fillRect(eye2X, eye2Y, eyeSize, eyeSize);
 
-                // Animação da língua
-                if (tongueFrame === 1) { // Desenha a língua apenas em um frame para animação
+                if (tongueFrame === 1) {
                     ctx.fillStyle = 'red';
                     if (direction === 'DIREITA') { tongueX = segX + gridSize; tongueY = segY + gridSize / 2 - 1; tongueW = 5; tongueH = 2; }
                     else if (direction === 'ESQUERDA') { tongueX = segX - 5; tongueY = segY + gridSize / 2 - 1; tongueW = 5; tongueH = 2; }
@@ -144,85 +175,82 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // --- LÓGICA DE DESENHAR O RATO ---
         const foodType = state.food.type;
         let foodImage = ratImages[foodType];
-
-        // Se a imagem do power-up não carregou ou não existe, usa a imagem do rato normal como fallback.
-        if (!foodImage || !foodImage.complete || foodImage.naturalHeight === 0) {
-            foodImage = ratImages['NORMAL'];
-        }
-        
-        const foodX = state.food.position[0];
-        const foodY = state.food.position[1];
-        
-        // Aumenta o tamanho base dos ratos para 2.0 (antes era 1.7)
-        const ratSize = gridSize * 2.0 * pulseFactor; 
-        const offset = (gridSize - ratSize) / 2;
-
-        if (foodImage && foodImage.complete) {
-            ctx.drawImage(foodImage, foodX * gridSize + offset, foodY * gridSize + offset, ratSize, ratSize);
-        }
+        if (!foodImage || !foodImage.complete || foodImage.naturalHeight === 0) foodImage = ratImages['NORMAL'];
+        const foodX = state.food.position[0], foodY = state.food.position[1];
+        const ratSize = gridSize * 2.0 * pulseFactor, offset = (gridSize - ratSize) / 2;
+        if (foodImage && foodImage.complete) ctx.drawImage(foodImage, foodX * gridSize + offset, foodY * gridSize + offset, ratSize, ratSize);
         
         scoreElement.textContent = state.score;
     }
 
-    // --- Funções de Partículas para o Rato Vermelho (Shrink Effect) ---
-    function generateShrinkParticles(x, y) {
-    for (let i = 0; i < 50; i++) { // Aumentado para 50 partículas
-        particles.push({
-            x: x + gridSize / 2,
-            y: y + gridSize / 2,
-            vx: (Math.random() - 0.5) * 5, // Aumenta a velocidade
-            vy: (Math.random() - 0.5) * 5, // Aumenta a velocidade
-            color: `rgb(${Math.floor(Math.random() * 50) + 200}, ${Math.floor(Math.random() * 50)}, ${Math.floor(Math.random() * 50)})`,
-            life: 80, // Aumenta o tempo de vida
-            size: Math.random() * 4 + 2 // Aumenta o tamanho
-            });
-        }
-    }
-
-    function updateParticles() {
-        for (let i = particles.length - 1; i >= 0; i--) {
-            const p = particles[i];
-            p.x += p.vx;
-            p.y += p.vy;
-            p.life--;
-            p.size *= 0.98; // Encolhe as partículas
-            p.vy += 0.1; // Gravidade simples
-            if (p.life <= 0 || p.size <= 0.5) {
-                particles.splice(i, 1); // Remove partículas mortas
-            }
-        }
-    }
-
-    function drawParticles() {
-        particles.forEach(p => {
-            ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
-            ctx.fill();
-        });
-    }
-
-    async function handlePlayerInput(event) {
+    function handlePlayerInput(event) {
         const key = event.key;
         let direction = null;
         if (key === 'ArrowUp') direction = 'CIMA';
         if (key === 'ArrowDown') direction = 'BAIXO';
         if (key === 'ArrowLeft') direction = 'ESQUERDA';
         if (key === 'ArrowRight') direction = 'DIREITA';
-        if (direction) {
-            await fetch('/api/move', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ direction: direction })
-            });
-        }
+        if (direction) proximaDirecao = direction;
     }
 
     function showGameOverScreen(finalScore) {
+        clearInterval(gameLoopInterval);
+        document.removeEventListener('keydown', handlePlayerInput);
         finalScoreElement.textContent = finalScore;
+
+        const highScores = JSON.parse(localStorage.getItem('snakeHighScores')) || [];
+        const isNewHighScore = highScores.length < 5 || finalScore > highScores[highScores.length - 1].score;
+
+        if (isNewHighScore) {
+            finalScoresDiv.style.display = 'none';
+            newHighscoreDiv.style.display = 'flex';
+        } else {
+            displayHighScores(highScores);
+            finalScoresDiv.style.display = 'flex';
+            newHighscoreDiv.style.display = 'none';
+        }
         gameOverScreen.classList.add('visible');
     }
+
+    function saveHighScore(finalScore) {
+        const name = playerNameInput.value.trim().toUpperCase().substring(0, 3) || 'JOG';
+        const highScores = JSON.parse(localStorage.getItem('snakeHighScores')) || [];
+        
+        highScores.push({ score: finalScore, name: name });
+        highScores.sort((a, b) => b.score - a.score);
+        highScores.splice(5);
+        
+        localStorage.setItem('snakeHighScores', JSON.stringify(highScores));
+        
+        newHighscoreDiv.style.display = 'none';
+        finalScoresDiv.style.display = 'flex';
+        displayHighScores(highScores);
+    }
+
+    function displayHighScores(scores) {
+        highScoreListElement.innerHTML = '';
+        if (scores.length > 0) {
+            scores.forEach((score, index) => {
+                const li = document.createElement('li');
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'score-name';
+                nameSpan.textContent = `${index + 1}. ${score.name}`;
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'score-value';
+                scoreSpan.textContent = score.score;
+                li.appendChild(nameSpan);
+                li.appendChild(scoreSpan);
+                highScoreListElement.appendChild(li);
+            });
+        } else {
+            highScoreListElement.innerHTML = '<li>Nenhum recorde ainda!</li>';
+        }
+    }
+    
+    function generateShrinkParticles(x, y) { for (let i = 0; i < 50; i++) particles.push({ x: x + gridSize / 2, y: y + gridSize / 2, vx: (Math.random() - 0.5) * 5, vy: (Math.random() - 0.5) * 5, color: `rgb(${Math.floor(Math.random()*50)+200}, ${Math.floor(Math.random()*50)}, ${Math.floor(Math.random()*50)})`, life: 80, size: Math.random() * 4 + 2 }); }
+    function updateParticles() { for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life--; p.size *= 0.98; p.vy += 0.1; if (p.life <= 0 || p.size <= 0.5) particles.splice(i, 1); } }
+    function drawParticles() { particles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2); ctx.fill(); }); }
+    function drawRoundedRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();ctx.fill();}
 });

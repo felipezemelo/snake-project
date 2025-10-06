@@ -18,11 +18,10 @@ def start_game(context):
         try:
             context.driver.quit()
         except Exception:
-            pass # Ignora erros se o navegador já estiver fechado
+            pass
     context.driver = webdriver.Chrome()
     
     context.driver.get(BASE_URL)
-    # CORREÇÃO: Passa context.driver em vez de context para o WebDriverWait
     WebDriverWait(context.driver, 10).until(
         EC.presence_of_element_located((By.ID, 'start-screen'))
     )
@@ -49,8 +48,8 @@ def call_api_sync(context, url, data):
     context.driver.execute_async_script(script)
 
 def get_game_state(context):
-    """Usa a API passiva para obter o estado do jogo sem o modificar."""
-    return context.driver.execute_script("return await (await fetch('/api/get_current_state')).json()")
+    """Usa a API para ATUALIZAR e obter o estado do jogo."""
+    return context.driver.execute_script("return await (await fetch('/api/state')).json()")
 
 # --- Implementação Final de TODOS os Steps ---
 
@@ -62,7 +61,7 @@ def step_impl(context, pontuacao, tamanho):
 
 @given(u'um "{tipo_rato}" está na célula à frente da cobra')
 def step_impl(context, tipo_rato):
-    state = get_game_state(context)
+    state = context.driver.execute_script("return await (await fetch('/api/get_current_state')).json()")
     snake_head = state['snake_body'][0]
     food_pos = {'x': snake_head[0] + 1, 'y': snake_head[1]}
     rat_type_map = { "Rato Normal": "NORMAL", "Rato Dourado": "DOURADO", "Rato Vermelho": "VERMELHO" }
@@ -96,6 +95,9 @@ def step_impl(context):
 
 @then(u'a tela de "Game Over" deve ser exibida')
 def step_impl(context):
+    game_state = get_game_state(context) 
+    assert game_state['game_over'] is True
+    
     game_over_screen = WebDriverWait(context.driver, 10).until(
         EC.visibility_of_element_located((By.ID, 'game-over-screen'))
     )
@@ -105,28 +107,38 @@ def step_impl(context):
 @given(u'que a cobra tem tamanho "{tamanho}" e está prestes a cruzar seu próprio corpo')
 def step_impl(context, tamanho):
     start_game(context)
-    colliding_body = [[5, 5], [6, 5], [7, 5], [7, 6], [6, 6]]
-    call_api_sync(context, '/api/test/set_snake', {'body': colliding_body, 'direction': 'ESQUERDA'})
+    colliding_body = [[5, 5], [4, 5], [4, 6], [5, 6], [6, 6]]
+    call_api_sync(context, '/api/test/set_snake', {'body': colliding_body, 'direction': 'BAIXO'})
 
 @when(u'a cobra se move')
 def step_impl(context):
     time.sleep(0.5)
 
-# Passos para Visualização de Pontuação Final
+# --- CORREÇÃO FINAL APLICADA NOS PASSOS ABAIXO ---
+
 @given(u'que eu terminei uma partida com "{pontos}" pontos')
 def step_impl(context, pontos):
     start_game(context)
-    call_api_sync(context, '/api/test/set_state', {'score': pontos})
-    call_api_sync(context, '/api/test/set_snake', {'body': [[-1, 10]]})
+    # Apenas guardamos os pontos no contexto para usar depois.
+    context.pontos = int(pontos)
+    # Não forçamos o game over aqui para evitar a condição de corrida.
 
 @when(u'a tela de "Game Over" é exibida')
 def step_impl(context):
+    # Agora, neste passo, nós forçamos o estado E o game over de uma só vez.
+    # Isso garante que o backend tem a pontuação correta ANTES do jogo terminar.
+    call_api_sync(context, '/api/test/set_state', {'score': context.pontos})
+    call_api_sync(context, '/api/test/set_snake', {'body': [[-1, 10]]}) # Força a colisão
+    
+    # Finalmente, esperamos que o frontend reaja a este novo estado.
+    get_game_state(context) 
     WebDriverWait(context.driver, 10).until(
         EC.visibility_of_element_located((By.ID, 'game-over-screen'))
     )
 
 @then(u'o texto "Pontuação Final: {pontos}" deve estar visível na tela')
 def step_impl(context, pontos):
+    # A verificação continua a mesma, mas agora ela deve encontrar o texto correto.
     WebDriverWait(context.driver, 10).until(
         EC.text_to_be_present_in_element((By.ID, 'finalScore'), pontos)
     )

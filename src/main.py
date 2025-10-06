@@ -1,6 +1,7 @@
 # src/main.py
 from flask import Flask, render_template, jsonify, request
 from src.game import Game
+from src.board import Food # Importar a classe Food
 
 app = Flask(__name__)
 game_instance = Game(largura=20, altura=20)
@@ -47,7 +48,6 @@ def set_snake_for_testing():
     direction = data.get('direction')
     
     if body:
-        # Converte a lista de listas para uma lista de tuplos
         game_instance.snake.corpo = [tuple(segment) for segment in body]
         game_instance.snake.posicao = game_instance.snake.corpo[0]
         game_instance.snake.tamanho = len(body)
@@ -56,8 +56,6 @@ def set_snake_for_testing():
         game_instance.snake.direcao = direction.upper()
         
     return jsonify({'status': 'success'})
-
-
 
 @app.route('/api/get_current_state', methods=['GET'])
 def get_current_state():
@@ -71,6 +69,45 @@ def get_current_state():
         'snake_direction': game_instance.snake.direcao
     }
     return jsonify(state)
+
+# --- NOVAS ROTAS PARA TESTES ---
+
+@app.route('/api/test/set_state', methods=['POST'])
+def set_state_for_testing():
+    """Define o estado do jogo (pontuação, tamanho da cobra) para um teste."""
+    global game_instance
+    data = request.get_json()
+    
+    score = data.get('score')
+    snake_size = data.get('snake_size')
+    
+    if score is not None:
+        game_instance.pontuacao = int(score)
+        
+    if snake_size is not None:
+        current_size = len(game_instance.snake.corpo)
+        size_diff = int(snake_size) - current_size
+        if size_diff > 0:
+            for _ in range(size_diff):
+                game_instance.snake.crescer()
+                
+    return jsonify({'status': 'success'})
+
+@app.route('/api/test/set_food', methods=['POST'])
+def set_food_for_testing():
+    """Define a posição e o tipo da comida para um teste."""
+    global game_instance
+    data = request.get_json()
+    
+    x = data.get('x')
+    y = data.get('y')
+    food_type = data.get('type')
+    
+    if x is not None and y is not None and food_type:
+        game_instance.board.comida = Food(x, y, food_type=food_type)
+        
+    return jsonify({'status': 'success'})
+
 
 if __name__ == '__main__':
     app.run(debug=True)

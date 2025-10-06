@@ -9,7 +9,7 @@
 <body>
     <div class="game-container">
         <h1>Snake</h1>
-        <div class.hud">
+        <div class="hud">
             <h2>Pontuação: <span id="score">0</span></h2>
         </div>
         <canvas id="gameCanvas" width="400" height="400"></canvas>
@@ -17,15 +17,37 @@
         <div id="start-screen" class="overlay">
             <p>Aperte qualquer tecla para iniciar</p>
         </div>
+
         <div id="difficulty-screen" class="overlay">
             <h2>Selecione a Dificuldade</h2>
             <button id="normalBtn">Normal</button>
             <button id="dificilBtn">Difícil</button>
         </div>
+        
+        <div id="tutorial-screen" class="overlay">
+            <h2>Como Jogar</h2>
+            <p>Use as setas do teclado para mover a cobra.</p>
+            <img class="tutorial-image" src="{{ url_for('static', filename='setas.png') }}" alt="Setas do Teclado">
+            <p>Coma os ratos para crescer e pontuar!</p>
+            <img class="tutorial-image" src="{{ url_for('static', filename='cobra_rato.png') }}" alt="Cobra comendo rato">
+            <button id="playBtn">Jogar!</button>
+        </div>
+
         <div id="game-over-screen" class="overlay">
-            <h2>Game Over</h2>
-            <p>Pontuação Final: <span id="finalScore">0</span></p>
-            <button id="restartBtn">Tentar Novamente</button>
+            <div id="final-scores">
+                <h2>Game Over</h2>
+                <p>Sua Pontuação: <span id="finalScore">0</span></p>
+                <h3>Melhores Pontuações:</h3>
+                <ol id="highScoreList"></ol>
+                <button id="restartBtn">Tentar Novamente</button>
+            </div>
+
+            <div id="new-highscore-entry" style="display: none;">
+                <h2>Novo Recorde!</h2>
+                <p>Você está entre os 5 melhores!</p>
+                <input type="text" id="playerNameInput" placeholder="Digite suas iniciais" maxlength="3">
+                <button id="saveScoreBtn">Salvar</button>
+            </div>
         </div>
     </div>
     <script src="{{ url_for('static', filename='interface.js') }}"></script>

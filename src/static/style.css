@@ -4,6 +4,7 @@
 body {
     background-color: #1a1a1a;
     color: #f0f0f0;
+    /* NOME DA FONTE CORRIGIDO AQUI */
     font-family: 'Press Start 2P', cursive;
     display: flex;
     justify-content: center;
@@ -59,6 +60,7 @@ canvas {
 }
 
 .overlay {
+    font-family: 'Press Start 2P', cursive;
     position: absolute;
     top: 0;
     left: 0;
@@ -81,10 +83,18 @@ canvas {
     visibility: visible;
 }
 
-.overlay h2 {
-    font-size: 1.5em;
+.overlay h2, .overlay h3 {
+    font-size: 1em;
     color: #00ff00;
+    margin: 15px 0 5px 0;
 }
+
+.overlay p {
+    font-size: 0.8em;
+    margin: 5px 0 15px 0;
+    max-width: 90%;
+}
+
 
 button {
     font-family: 'Press Start 2P', cursive;
@@ -111,4 +121,68 @@ button:hover {
   20%, 24%, 55% {
     text-shadow: none;
   }
+}
+
+.tutorial-image {
+    max-width: 150px;
+    margin: 5px 0 15px 0;
+    background-color: #000;
+    border: 2px solid #444;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+#final-scores {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+#highScoreList {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+    width: 280px;
+    font-size: 0.7em;
+    color: #f0f0f0;
+}
+
+#highScoreList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px dashed #444;
+}
+
+#highScoreList li:last-child {
+    border-bottom: none;
+}
+
+.score-name {
+    text-align: left;
+}
+
+.score-value {
+    text-align: right;
+    color: #ffff00;
+}
+
+#new-highscore-entry #playerNameInput {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.6em;
+    width: 180px;
+    background-color: #1a1a1a;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    padding: 10px;
+    text-align: center;
+    margin-top: 20px;
+    text-transform: uppercase;
+}
+
+#new-highscore-entry #playerNameInput::placeholder {
+    color: #555;
+    font-size: 0.6em;
 }
