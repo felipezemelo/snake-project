@@ -15,7 +15,7 @@ O principal objetivo é aplicar os princípios de **Teste Holístico**, utilizan
 - [x] **Fase 5.1:** Implementar os 4 *Step Definitions* restantes  
 - [x] **Fase 6:** Desenvolvimento da Lógica do Jogo (`snake.py` e `game.js`) com TDD  
 - [x] **Fase 7:** Realizar Testes Informais com usuários e registrar *Issues*  
-- [ ] **Fase 8:** Escrever o Relatório Técnico Final  
+- [x] **Fase 8:** Escrever o Relatório Técnico Final  
 
 ---
 
