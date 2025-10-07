@@ -21,8 +21,8 @@ O principal objetivo é aplicar os princípios de **Teste Holístico**, utilizan
 
 ## 🛠 Tecnologias Utilizadas
 
-- **Backend:** Python 3, Flask  
-- **Frontend:** HTML5, CSS3, JavaScript  
+- **Backend:** Python, Flask  
+- **Frontend:** HTML, CSS, JavaScript  
 - **Testes BDD:** Behave, Selenium  
 - **Testes TDD:** Pytest  
 
