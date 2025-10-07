@@ -57,6 +57,5 @@ python src/main.py
 # 2. Rodar os Testes BDD:
 behave
 
-TO-DO
 # 3. Rodar os Testes TDD (Unitários) 
 pytest
